@@ -1,5 +1,5 @@
 from typing import List
-from pulp import LpProblem, LpMinimize, LpVariable, LpInteger, LpContinuous, LpStatus, lpSum, value
+from pulp import LpProblem, LpMinimize, LpVariable, LpInteger, LpContinuous, LpStatus, lpSum, value, permutation
 
 class Material:
     def __init__(self, length: int) -> None:
@@ -44,9 +44,12 @@ class StructureOptimizer:
             )
             else LpContinuous
         )
-        x_total_length = LpVariable("x_total_length", lowBound=0, upBound=None, cat=length_cat)
-        y_total_length = LpVariable("y_total_length", lowBound=0, upBound=None, cat=length_cat)
-        z_total_length = LpVariable("z_total_length", lowBound=0, upBound=None, cat=length_cat)
+        n_of_dimensions = 3
+        dimensions = [
+            LpVariable(f"dimension_{i}", lowBound=0, upBound=None, cat=length_cat)
+            for i
+            in range(n_of_dimensions)
+        ]
         material_and_dimension = LpVariable.dicts(
             "material_and_dimension",
             [(i, j) for i in range(len(self.materials)) for j in range(3)],
@@ -61,36 +64,16 @@ class StructureOptimizer:
         for material in range(len(self.materials)):
             p += lpSum([material_and_dimension[material, dimension] for dimension in range(3)]) == 1
 
-        # x_total_length is the sum of all the material lengths in dimension 0
-        p += x_total_length == lpSum([
-            self.materials[material].length * material_and_dimension[material, 0]
-            for material
-            in range(len(self.materials))
-        ])
-
-        # y_total_length is the sum of all the material lengths in dimension 1
-        p += y_total_length == lpSum([
-            self.materials[material].length * material_and_dimension[material, 1]
-            for material
-            in range(len(self.materials))
-        ])
-
-        # z_total_length is the sum of all the material lengths in dimension 2
-        p += z_total_length == lpSum([
-            self.materials[material].length * material_and_dimension[material, 2]
-            for material
-            in range(len(self.materials))
-        ])
+        for dimension_index, dimension in enumerate(dimensions):
+            p += dimension == lpSum([
+                self.materials[material].length * material_and_dimension[material, dimension_index]
+                for material
+                in range(len(self.materials))
+            ])
 
         # Constrain the differences to be less than or equal to the slack variable
-        p += x_total_length - y_total_length <= slack
-        p += y_total_length - x_total_length <= slack
-
-        p += x_total_length - z_total_length <= slack
-        p += z_total_length - x_total_length <= slack
-
-        p += y_total_length - z_total_length <= slack
-        p += z_total_length - y_total_length <= slack
+        for a, b in permutation(range(n_of_dimensions), 2):
+            p += dimensions[a] - dimensions[b] <= slack
 
         # Solve the problem
         p.solve()
