@@ -1,27 +1,27 @@
 import unittest
-from optimizer import StructureOptimizer, Material
+from optimizer import StructureOptimizer
 
 class TestOptimizer(unittest.TestCase):
     def test_make_cube(self):
-        materials = [Material(1), Material(1), Material(1)]
+        materials = [1, 1, 1]
         optimizer = StructureOptimizer(materials)
         structure = optimizer.largest_volume_structure()
         self.assertEqual(1, structure.volume())
 
     def test_make_2_volume_rectangle(self):
-        materials = [Material(1), Material(1), Material(2)]
+        materials = [1, 1, 2]
         optimizer = StructureOptimizer(materials)
         structure = optimizer.largest_volume_structure()
         self.assertEqual(2, structure.volume())
 
     def test_make_4_volume_rectangle(self):
-        materials = [Material(1), Material(2), Material(2)]
+        materials = [1, 2, 2]
         optimizer = StructureOptimizer(materials)
         structure = optimizer.largest_volume_structure()
         self.assertEqual(4, structure.volume())
 
     def test_make_64_volume_cube(self):
-        materials = [Material(2), Material(2), Material(2), Material(2), Material(2), Material(2)]
+        materials = [2, 2, 2, 2, 2, 2]
         optimizer = StructureOptimizer(materials)
         structure = optimizer.largest_volume_structure()
         self.assertEqual(64, structure.volume())
@@ -129,8 +129,7 @@ class TestOptimizer(unittest.TestCase):
             98,
             38,
         ]
-        materials = [Material(length) for length in lengths]
-        optimizer = StructureOptimizer(materials)
+        optimizer = StructureOptimizer(lengths)
         structure = optimizer.largest_volume_structure()
         self.assertEqual(4769911476, structure.volume())
 
