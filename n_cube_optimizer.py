@@ -26,7 +26,7 @@ def optimal_n_cube(lengths: List[int], n_of_dimensions: int):
     ]
     material_and_dimension = LpVariable.dicts(
         "material_and_dimension",
-        [(i, j) for i in range(len(lengths)) for j in range(3)],
+        [(i, j) for i in range(len(lengths)) for j in range(n_of_dimensions)],
         lowBound=0,
         upBound=None,
         cat="Binary"
@@ -36,7 +36,7 @@ def optimal_n_cube(lengths: List[int], n_of_dimensions: int):
 
     # Each material must be used once
     for material in range(len(lengths)):
-        p += lpSum([material_and_dimension[material, dimension] for dimension in range(3)]) == 1
+        p += lpSum([material_and_dimension[material, dimension] for dimension in range(n_of_dimensions)]) == 1
 
     for dimension_index, dimension in enumerate(dimensions):
         p += dimension == lpSum([
